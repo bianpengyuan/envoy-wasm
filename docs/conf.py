@@ -47,7 +47,7 @@ def setup(app):
   app.add_config_value('substitutions', [], 'html')
   app.add_directive('substitution-code-block', SubstitutionCodeBlock)
 
-
+os.environ.setdefault('ENVOY_DOCS_RELEASE_LEVEL', 'pre-release')
 if not os.environ.get('ENVOY_DOCS_RELEASE_LEVEL'):
   raise Exception("ENVOY_DOCS_RELEASE_LEVEL env var must be defined")
 
