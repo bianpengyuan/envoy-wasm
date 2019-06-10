@@ -55,7 +55,8 @@ onConfigure
 
     void onConfigure(std::unique_ptr<WasmData> configuration)
 
-Called when host loads the WASM module. If the VM that the module running in has not been configured, `onConfigure` is called first with :ref:`VM config <envoy_api_field_config.wasm.v2.VmConfig.initial_configuration>`,
+Called when host loads the WASM module. *configuration* is passed in using :ref:`WasmData <config_http_filters_wasm_WasmData>`.
+If the VM that the module running in has not been configured, `onConfigure` is called first with :ref:`VM config <envoy_api_field_config.wasm.v2.VmConfig.initial_configuration>`,
 then a second call will be invoked to pass in :ref:`module config <envoy_api_field_config.wasm.v2.WasmConfig.configuration>`.
 *onConfigure* will only be called within :ref:`root context <config_http_filters_wasm_context_object>`.
 
@@ -382,6 +383,8 @@ Gets value of header with the given key. Returns empty string if header does not
 This method is effective only when called in :ref:`onRequestHeader <config_http_filters_wasm_context_object_api_onrequestheaders>` and
 :ref:`onLog <config_http_filters_wasm_context_object_api_onlog>`.
 
+Returns :ref:`WasmData <config_http_filters_wasm_WasmData>` pointer which contains the header value data.
+
 getRequestHeaderPairs
 ^^^^^^^^^^^^^^^^^^^^^
 
@@ -391,6 +394,8 @@ getRequestHeaderPairs
 
 Gets all header pairs. This method is effective only when called in :ref:`onRequestHeader <config_http_filters_wasm_context_object_api_onrequestheaders>` and
 :ref:`onLog <config_http_filters_wasm_context_object_api_onlog>`.
+
+Returns :ref:`WasmData <config_http_filters_wasm_WasmData>` pointer which contains header pairs data.
 
 .. _config_http_filters_wasm_response_header_api:
 
@@ -423,37 +428,41 @@ removeResponseHeader
 
 Removes response header with the given key. No-op if the response header does not exist.
 This method is effective only when called in :ref:`onResponseHeader <config_http_filters_wasm_context_object_api_onresponseheaders>`.
- 
+
 setResponseHeaderPairs
 ^^^^^^^^^^^^^^^^^^^^^^
- 
+
 .. code-block:: cpp
- 
+
    void setResponseHeaderPairs(const HeaderStringPairs &pairs)
- 
+
 Sets response headers with the given header pairs. For each header key value pair, it acts the same way as replaceResponseHeader.
 This method is effective only when called in :ref:`onResponseHeader <config_http_filters_wasm_context_object_api_onresponseheaders>`.
- 
+
 getResponseHeader
 ^^^^^^^^^^^^^^^^^
- 
+
 .. code-block:: cpp
- 
+
    WasmDataPtr getResponseHeader(StringView key)
- 
+
 Gets value of header with the given key. Returns empty string if header does not exist.
 This method is effective only when called in :ref:`onResponseHeader <config_http_filters_wasm_context_object_api_onresponseheaders>` and
 :ref:`onLog <config_http_filters_wasm_context_object_api_onlog>`.
- 
+
+Returns :ref:`WasmData <config_http_filters_wasm_WasmData>` pointer which holds the header value.
+
 getResponseHeaderPairs
 ^^^^^^^^^^^^^^^^^^^^^^
- 
+
 .. code-block:: cpp
- 
+
    WasmDataPtr getResponseHeaderPairs()
- 
+
 Gets all header pairs. This method is effective only when called in :ref:`onResponseHeader <config_http_filters_wasm_context_object_api_onresponseheaders>` and
 :ref:`onLog <config_http_filters_wasm_context_object_api_onlog>`.
+
+Returns :ref:`WasmData <config_http_filters_wasm_WasmData>` pointer which holds the header pairs.
 
 .. _config_http_filters_wasm_response_trailer_api:
 
@@ -507,6 +516,8 @@ getRequestTrailer
 Gets value of trailer with the given key. Returns empty string if trailer does not exist.
 This method is effective only when called in :ref:`onRequestTrailers <config_http_filters_wasm_context_object_api_onrequesttrailers>`.
 
+Returns :ref:`WasmData <config_http_filters_wasm_WasmData>` pointer which holds the trailer value.
+
 getRequestTrailerPairs
 ^^^^^^^^^^^^^^^^^^^^^^
 
@@ -516,66 +527,72 @@ getRequestTrailerPairs
 
 Gets all trailer pairs. This method is effective only when called in :ref:`onRequestTrailers <config_http_filters_wasm_context_object_api_onrequesttrailers>`.
 
+Returns :ref:`WasmData <config_http_filters_wasm_WasmData>` pointer which holds the trailer pairs.
+
 addResponseTrailer
 ^^^^^^^^^^^^^^^^^^
- 
+
 .. code-block:: cpp
- 
+
    void addResponseTrailer(StringView key, StringView value)
- 
+
 Adds a new response trailer with the key and value if trailer does not exist, or append the value if trailer exists.
 This method is effective only when called in :ref:`onResponseTrailer <config_http_filters_wasm_context_object_api_onresponsetrailers>`.
- 
+
 replaceResponseTrailer
 ^^^^^^^^^^^^^^^^^^^^^^
- 
+
 .. code-block:: cpp
- 
+
    void replaceResponseTrailer(StringView key, StringView value)
- 
+
 Replaces the value of an existing response trailer with the given key, or create a new response trailer with the key and value if not existing.
 This method is effective only when called in :ref:`onResponseTrailer <config_http_filters_wasm_context_object_api_onresponsetrailers>`.
- 
+
 removeResponseTrailer
 ^^^^^^^^^^^^^^^^^^^^^
- 
+
 .. code-block:: cpp
- 
+
    void removeResponseTrailer(StringView key)
- 
+
 Removes response trailer with the given key. No-op if the response trailer does not exist.
 This method is effective only when called in :ref:`onResponseTrailer <config_http_filters_wasm_context_object_api_onresponsetrailers>`.
- 
+
 setResponseTrailerPairs
 ^^^^^^^^^^^^^^^^^^^^^^^
- 
+
 .. code-block:: cpp
- 
+
    void setResponseTrailerPairs(const TrailerStringPairs &pairs)
- 
+
 Sets response trailers with the given trailer pairs. For each trailer key value pair, it acts the same way as replaceResponseTrailer.
 This method is effective only when called in :ref:`onResponseTrailer <config_http_filters_wasm_context_object_api_onresponsetrailers>`.
- 
+
 getResponseTrailer
 ^^^^^^^^^^^^^^^^^^
- 
+
 .. code-block:: cpp
- 
+
    WasmDataPtr getResponseTrailer(StringView key)
- 
+
 Gets value of trailer with the given key. Returns empty string if trailer does not exist.
 This method is effective only when called in :ref:`onResponseTrailer <config_http_filters_wasm_context_object_api_onresponsetrailers>` and
 :ref:`onLog <config_http_filters_wasm_context_object_api_onlog>`.
- 
+
+Returns :ref:`WasmData <config_http_filters_wasm_WasmData>` pointer which holds the trailer value.
+
 getResponseTrailerPairs
 ^^^^^^^^^^^^^^^^^^^^^^^
- 
+
 .. code-block:: cpp
 
    WasmDataPtr getResponseTrailerPairs()
- 
+
 Gets all trailer pairs. This method is effective only when called in :ref:`onResponseTrailer <config_http_filters_wasm_context_object_api_onresponsetrailers>` and
 :ref:`onLog <config_http_filters_wasm_context_object_api_onlog>`.
+
+Returns :ref:`WasmData <config_http_filters_wasm_WasmData>` pointer which holds the trailer pairs.
 
 .. _config_http_filters_wasm_body_api:
 
@@ -592,6 +609,8 @@ getRequestBodyBufferBytes
 Returns buffered request body. This copies segment of request body. *start* is an integer and supplies the body buffer start index to copy. 
 *length* is an integer and supplies the buffer length to copy. This method is effective when calling from :ref:`onRequestBody <config_http_filters_wasm_context_object_api_onrequestbody>`.
 
+Returns :ref:`WasmData <config_http_filters_wasm_WasmData>` pointer which holds the request body data.
+
 getResponseBodyBufferBytes
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -602,47 +621,29 @@ getResponseBodyBufferBytes
 Returns buffered response body. This copies segment of response body. *start* is an integer and supplies the body buffer start index to copy.
 *length* is an integer and supplies the buffer length to copy. This method is effective when calling from :ref:`onResponseBody <config_http_filters_wasm_context_object_api_onresponsebody>`.
 
+Returns :ref:`WasmData <config_http_filters_wasm_WasmData>` pointer which holds the response body data.
+
 Metadata API
 ------------
 
-.. Route metadata API
-.. ~~~~~~~~~~~~~~~~~~
-
-requestRouteMetadataValue
-^^^^^^^^^^^^^^^^^^^^^^^^^
-.. code-block:: cpp
-
-    google::protobuf::Value requestRouteMetadataValue(StringView key);
-
-Returns `value <https://developers.google.com/protocol-buffers/docs/reference/google.protobuf#value>`_ of the given key in :ref:`metadata <envoy_api_field_route.Route.metadata>` of  at request time. 
-
-responseRouteMetadataValue
-^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-.. code-block:: cpp
-
-    google::protobuf::Value responseRouteMetadataValue(StringView key);
-
-Returns `value <https://developers.google.com/protocol-buffers/docs/reference/google.protobuf#value>`_ of the given key in :ref:`route metadata <envoy_api_field_route.Route.metadata>` at response time. 
-
-.. Node metadata API
-.. ~~~~~~~~~~~~~~~~~
-
-.. Request metadata API
-.. ~~~~~~~~~~~~~~~~~~~~
-
-.. Response metadata API
-.. ~~~~~~~~~~~~~~~~~~~~~
-
-.. Log metadata API
-.. ~~~~~~~~~~~~~~~~
+TODO: Add metadata related API
 
 .. _config_http_filters_wasm_streaminfo_api:
 
 StreamInfo API
 --------------
 
-.. inline WasmDataPtr getProtocol(StreamType type)
+getProtocol
+^^^^^^^^^^^
+
+.. code-block:: cpp
+
+   WasmDataPtr getProtocol(StreamType type)
+
+Returns the string representation of HTTP protocol used by the current request.
+The possible values are: HTTP/1.0, HTTP/1.1, and HTTP/2.
+*type* is the stream type with two possible values: StreamType::Request and StreamType::Response.
+The string protocol is returned as :ref:`WasmData <config_http_filters_wasm_WasmData>`.
 
 Timer API
 ---------
@@ -868,10 +869,10 @@ New
 ~~~
 
 .. code-block:: cpp
-    
+
     static Histogram<Tags...>* New(StringView name, MetricTagDescriptor<Tags>... fieldnames)
 
-Create a new histogram object with the given metric name and tag names. 
+Create a new histogram object with the given metric name and tag names.
 Example code to create a histogram metric:
 
 .. code-block:: cpp
@@ -937,48 +938,100 @@ Data Structure
 GrpcCallHandler
 ^^^^^^^^^^^^^^^
 
-Handler 
+Base class for gRPC unary call handler. Subclass should specify response message type
+and override necessary callbacks.
+Example code to create a call handler using *google::protobuf::Empty* as reponse message.
+
+.. code-block:: cpp
+
+    class CallHandler : public GrpcCallHandler<google::protobuf::Empty> {
+      public:
+        void onSuccess(google::protobuf::Empty&& response) {
+            /* override onSuccess code */
+        }
+        /*
+            more callbacks such as onFailure, onCreateInitialMetadata
+        */
+    };
+
+To initiate a handler, pass in a pointer to :ref:`context object <config_http_filters_wasm_context_object>`
+that this call should attach to. For example, passing in root context:
+
+.. code-block:: cpp
+
+    auto handler = std::make_unique<CallHandler>(&root_context);
+
+Note the context object needs to outlive the call.
+*handler* is also used for WASM module to interact with the stream, such as canceling the call.
 
 onSuccess
 ~~~~~~~~~
 
+.. code-block:: cpp
+
+    void onSuccess(Message&& response)
+
+Called when the async gRPC request succeeds. No further callbacks will be invoked.
+
 onFailure
 ~~~~~~~~~
+
+.. code-block:: cpp
+
+    void onFailure(GrpcStatus status, std::unique_ptr<WasmData> error_message)
+
+Called when the async gRPC request fails. No further callbacks will be invoked.
+*status* is returned grpc status. *error_message* is the gRPC status message or empty string if not present.
 
 onCreateInitialMetadata
 ~~~~~~~~~~~~~~~~~~~~~~~
 
+.. code-block:: cpp
+
+    void onCreateInitialMetadata()
+
+Called when populating the headers to send with initial metadata. TODO: how to add metadata?
+
 cancel
 ~~~~~~
+
+.. code-block:: cpp
+
+    void cancel()
+
+Signals that the request should be cancelled. No further callbacks will be invoked.
 
 .. _config_http_filters_wasm_GrpcStreamHandler:
 
 GrpcStreamHandler
 ^^^^^^^^^^^^^^^^^
 
-Base class for gRPC stream handler. Subclass could specify stream message types and override various callbacks.
-Example code to create a stream handler using *google::protobuf::Struct* as request and response message:
+Base class for gRPC stream handler. Subclass should specify stream message type and override callbacks.
+Example code to create a stream handler using *google::protobuf::Struct* as request message
+and *google::protobuf::Any* response message:
 
 .. code-block:: cpp
 
-    class StreamHandler : public GrpcStreamHandler<google::protobuf::Struct, google::protobuf::Struct> {
+    class StreamHandler : public GrpcStreamHandler<google::protobuf::Struct, google::protobuf::Any> {
       public:
-        void onReceive(google::protobuf::Struct&& message) {
-            /* override function with receive logic */
+        void onReceive(google::protobuf::Any&& message) {
+            /* override onReceive code */
         }
         /*
-            more callbacks onCreateInitialMetadat, onReceiveTrailingMetadata, onReceive, onRemoteClose
+            more callbacks such as onCreateInitialMetadat, onReceiveTrailingMetadata, onReceive, onRemoteClose
         */
     };
 
-To initiate a handler, pass in pointer of a :ref:`context object <config_http_filters_wasm_context_object>`:
+To initiate a handler, pass in a pointer to :ref:`context object <config_http_filters_wasm_context_object>`
+that this stream should attach to. For example, passing in root context:
 
 .. code-block:: cpp
 
-    auto handler = std::make_unique<StreamHandler>(&context);
+    auto handler = std::make_unique<StreamHandler>(&root_context);
 
-*handler* is also used for WASM module to interact with the stream, such as send message,
-close stream or reset stream.
+Note the context object needs to outlive the stream.
+*handler* is also used for WASM module to interact with the stream, such as sending message,
+closing and reseting stream.
 
 send
 ~~~~
@@ -1035,7 +1088,7 @@ onReceiveTrailingMetadata
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. code-block:: cpp
-  
+
     void onReceiveTrailingMetadata()
 
 Called when trailing metadata is received. This will also be called on non-Ok grpc-status
@@ -1066,6 +1119,55 @@ grpc status, *error_message* is the gRPC status error message or empty string if
 
 WasmData
 ^^^^^^^^
+
+WasmData is used to represent data passed into WASM module from host. It is like string view,
+which holds a pointer to start of the data and a size. It also supports several methods to access
+the data.
+
+data
+~~~~
+
+.. code-block:: cpp
+
+    const char* data()
+
+Returns the start pointer of the data.
+
+view
+~~~~
+
+.. code-block:: cpp
+
+    StringView view()
+
+Returns data as a string view constructed with the start pointer and the size.
+
+toString
+~~~~~~~~
+
+.. code-block:: cpp
+
+    std::string toString()
+
+Returns data as a string by converting the string view to string.
+
+pairs
+~~~~~
+
+.. code-block:: cpp
+
+    std::vector<std::pair<StringView, StringView>> pairs()
+
+Returns a vector of string view pair parsed from the data.
+
+proto
+~~~~~
+
+.. code-block:: cpp
+
+    template<typename T> T proto()
+
+Returns a proto message parsed from the data based on the specified proto type.
 
 Out of tree WASM module
 -----------------------
