@@ -24,7 +24,7 @@ An example C++ WASM filter could be found `here <https://github.com/envoyproxy/e
 To implement a WASM filter:
 
 * Create a `filter context class <https://github.com/envoyproxy/envoy-wasm/blob/19b9fd9a22e27fcadf61a06bf6aac03b735418e6/examples/wasm/envoy_filter_http_wasm_example.cc#L7>`_ which inherits the `base context class <https://github.com/envoyproxy/envoy-wasm/blob/19b9fd9a22e27fcadf61a06bf6aac03b735418e6/api/wasm/cpp/proxy_wasm_impl.h#L225>`_.
-* Override :ref:`context API <config_http_filters_wasm_context_api>` methods to handle corresponding initialization and stream events from host.
+* Override :ref:`context API <config_http_filters_wasm_context_object_api>` methods to handle corresponding initialization and stream events from host.
 * Implement a `NewContext method <https://github.com/envoyproxy/envoy-wasm/blob/19b9fd9a22e27fcadf61a06bf6aac03b735418e6/examples/wasm/envoy_filter_http_wasm_example.cc#L22>`_ for the construction of filter :ref:`context object <config_http_filters_wasm_context_object>`.
 
 .. _config_http_filters_wasm_context_object:
@@ -43,9 +43,9 @@ Stream context has the same lifetime as the stream and acts as target for intera
 .. image:: /_static/wasm_context.svg
   :width: 100%
 
-.. _config_http_filters_wasm_context_api:
+.. _config_http_filters_wasm_context_object_api:
 
-Context Object API
+Context object API
 ------------------
 
 onConfigure
@@ -57,7 +57,7 @@ onConfigure
 
 Called when host loads the WASM module. If the VM that the module running in has not been configured, `onConfigure` is called first with :ref:`VM config <envoy_api_field_config.wasm.v2.VmConfig.initial_configuration>`,
 then a second call will be invoked to pass in :ref:`module config <envoy_api_field_config.wasm.v2.WasmConfig.configuration>`.
-Note *onConfigure* will only be called within :ref:`root context <config_http_filters_wasm_context_object>`.
+*onConfigure* will only be called within :ref:`root context <config_http_filters_wasm_context_object>`.
 
 If :ref:`VM is shared <config_http_filters_wasm_vm_sharing>` by multiple modules and has already been configured via other WASM filter in the chain, `onConfigure` will only be called once with module config. 
 
@@ -69,7 +69,7 @@ onStart
     void onStart()
 
 Called after finishing loading WASM module and before serving any stream events.
-Note *onStart* will only be called within :ref:`root context <config_http_filters_wasm_context_object>`.
+*onStart* will only be called within :ref:`root context <config_http_filters_wasm_context_object>`.
 
 The following methods are called in order during lifetime of a stream.
 
@@ -82,7 +82,7 @@ onCreate
 
 Called at the beginning of filter chain iteration. Indicates creation of the new stream context.
 
-.. _config_http_filters_wasm_context_api_onrequestheaders:
+.. _config_http_filters_wasm_context_object_api_onrequestheaders:
 
 onRequestHeaders
 ^^^^^^^^^^^^^^^^
@@ -96,7 +96,7 @@ Called when headers are decoded. Request Headers could be fetched from host via 
 Returns `FilterHeadersStatus <https://github.com/envoyproxy/envoy/blob/5d3214d4d8e1d77937f0f1278d3ac816d9a3d888/include/envoy/http/filter.h#L27>`_ 
 to determine how filter chain iteration proceeds.
 
-.. _config_http_filters_wasm_context_api_onrequestbody:
+.. _config_http_filters_wasm_context_object_api_onrequestbody:
 
 onRequestBody
 ^^^^^^^^^^^^^
@@ -111,7 +111,7 @@ Called when request body is decoded. *body_buffer_length* is used to indicate si
 Returns `FilterDataStatus <https://github.com/envoyproxy/envoy/blob/5d3214d4d8e1d77937f0f1278d3ac816d9a3d888/include/envoy/http/filter.h#L66>`_
 to determine how filter chain iteration proceeds.
 
-.. _config_http_filters_wasm_context_api_onrequesttrailers:
+.. _config_http_filters_wasm_context_object_api_onrequesttrailers:
 
 onRequestTrailers
 ^^^^^^^^^^^^^^^^^
@@ -125,7 +125,7 @@ Called when request trailers are decoded. Request trailers could be fetched via 
 Returns FilterTrailerStatus `FilterTrailerStatus <https://github.com/envoyproxy/envoy/blob/5d3214d4d8e1d77937f0f1278d3ac816d9a3d888/include/envoy/http/filter.h#L104>`_
 to determine how filter chain iteration proceeds.
 
-.. _config_http_filters_wasm_context_api_onresponseheaders:
+.. _config_http_filters_wasm_context_object_api_onresponseheaders:
 
 onResponseHeaders
 ^^^^^^^^^^^^^^^^^
@@ -139,7 +139,7 @@ Called when headers are decoded. Response headers could be fetched from host via
 Returns `FilterHeadersStatus <https://github.com/envoyproxy/envoy/blob/5d3214d4d8e1d77937f0f1278d3ac816d9a3d888/include/envoy/http/filter.h#L27>`_
 to determine how filter chain iteration proceeds.
 
-.. _config_http_filters_wasm_context_api_onresponsebody:
+.. _config_http_filters_wasm_context_object_api_onresponsebody:
 
 onResponseBody
 ^^^^^^^^^^^^^^
@@ -155,7 +155,7 @@ Response body could be fetched from host via :ref:`body API <config_http_filters
 Returns `FilterDataStatus <https://github.com/envoyproxy/envoy/blob/5d3214d4d8e1d77937f0f1278d3ac816d9a3d888/include/envoy/http/filter.h#L66>`_
 to determine how filter chain iteration proceeds.
 
-.. _config_http_filters_wasm_context_api_onresponsetrailers:
+.. _config_http_filters_wasm_context_object_api_onresponsetrailers:
 
 onResponseTrailers
 ^^^^^^^^^^^^^^^^^^
@@ -178,7 +178,7 @@ onDone
 
 Called after stream is ended or reset. All stream info will not be changed any more and is safe for access logging.
 
-.. _config_http_filters_wasm_context_api_onlog:
+.. _config_http_filters_wasm_context_object_api_onlog:
 
 onLog
 ^^^^^
@@ -205,7 +205,7 @@ The stream context needs to make sure all async events are cleaned up, such as n
 
 The following method will be called if a timer is set with :ref:`setTickPeriodMilliseconds <config_http_filters_wasm_setTickPeriodMilliseconds>`.
 
-.. _config_http_filters_wasm_context_api_ontick:
+.. _config_http_filters_wasm_context_object_api_ontick:
 
 onTick
 ^^^^^^
@@ -238,9 +238,10 @@ Makes an HTTP call to an upstream host.
 *timeout_milliseconds* is a unsigned integer as timeout period for the http call in milliseconds.
 *callback* is the callback function to be called when the HTTP request finishes.
 
-Note if the call outlives the stream context, *httpCall* should be called within root context.
+.. note::
+    If the call outlives the stream context, *httpCall* should be called within :ref:`root context <config_http_filters_wasm_context_object>`.
 
-.. _config_http_filters_wasm_context_api_grpcSimpleCall:
+.. _config_http_filters_wasm_context_object_api_grpcSimpleCall:
 
 grpcSimpleCall
 ^^^^^^^^^^^^^^
@@ -265,7 +266,8 @@ Makes an unary gRPC call to an upstream host.
 *success_callback* is the callback function that will be called when gRPC call succeeds. *response* is the returned message from gRPC service.
 *failure_callback* is the callback function that will be invoked when gRPC call fails. *status* is the returned gRPC status code. *error_message* is detailed error message extracted from gRPC response.
 
-Note if the call outlives the stream context, *grpcSimpleCall* should be called within root context.
+.. note::
+    if the call outlives the stream context, *grpcSimpleCall* should be called within :ref:`root context <config_http_filters_wasm_context_object>`.
 
 grpcCallHandler
 ^^^^^^^^^^^^^^^
@@ -282,7 +284,7 @@ grpcCallHandler
 
 Makes an unary gRPC call to an upstream host.
 
-Similiar to :ref:`grpcSimpleCall <config_http_filters_wasm_context_api_grpcSimpleCall>` for gRPC client initialization,
+Similiar to :ref:`grpcSimpleCall <config_http_filters_wasm_context_object_api_grpcSimpleCall>` for gRPC client initialization,
 but uses :ref:`GrpcCallHandler <config_http_filters_wasm_GrpcCallHandler>` as target for callback and fine grained control on the call.
 
 grpcStreamHandler
@@ -302,7 +304,8 @@ Makes an gRPC stream to an upstream host.
 *handler* (:ref:`GrpcStreamHandler <config_http_filters_wasm_GrpcStreamHandler>`) is used to control the stream and
 as target for gRPC stream callbacks.
 
-Note if the stream call outlives the per request context, *grpcStreamHandler* should be called within root context.
+.. note::
+    if the stream call outlives the per request context, *grpcStreamHandler* should be called within :ref:`root context <config_http_filters_wasm_context_object>`.
 
 Application log API
 -------------------
@@ -336,7 +339,7 @@ addRequestHeader
     void addRequestHeader(StringView key, StringView value)
 
 Adds a new request header with the key and value if header does not exist, or append the value if header exists.
-Note this method is effective only when called in :ref:`onRequestHeader <config_http_filters_wasm_context_api_onrequestheaders>`.
+This method is effective only when called in :ref:`onRequestHeader <config_http_filters_wasm_context_object_api_onrequestheaders>`.
 
 replaceRequestHeader
 ^^^^^^^^^^^^^^^^^^^^
@@ -346,7 +349,7 @@ replaceRequestHeader
     void replaceRequestHeader(StringView key, StringView value)
 
 Replaces the value of an existing request header with the given key, or create a new request header with the key and value if not existing.
-Note this method is effective only when called in :ref:`onRequestHeader <config_http_filters_wasm_context_api_onrequestheaders>`.
+This method is effective only when called in :ref:`onRequestHeader <config_http_filters_wasm_context_object_api_onrequestheaders>`.
 
 removeRequestHeader
 ^^^^^^^^^^^^^^^^^^^
@@ -356,7 +359,7 @@ removeRequestHeader
     void removeRequestHeader(StringView key)
 
 Removes request header with the given key. No-op if the request header does not exist.
-Note this method is effective only when called in :ref:`onRequestHeader <config_http_filters_wasm_context_api_onrequestheaders>`.
+This method is effective only when called in :ref:`onRequestHeader <config_http_filters_wasm_context_object_api_onrequestheaders>`.
 
 setRequestHeaderPairs
 ^^^^^^^^^^^^^^^^^^^^^
@@ -366,7 +369,7 @@ setRequestHeaderPairs
     void setRequestHeaderPairs(const HeaderStringPairs &pairs)
 
 Sets request headers with the given header pairs. For each header key value pair, it acts the same way as replaceRequestHeader.
-Note this method is effective only when called in :ref:`onRequestHeader <config_http_filters_wasm_context_api_onrequestheaders>`.
+This method is effective only when called in :ref:`onRequestHeader <config_http_filters_wasm_context_object_api_onrequestheaders>`.
 
 getRequestHeader
 ^^^^^^^^^^^^^^^^
@@ -376,8 +379,8 @@ getRequestHeader
     WasmDataPtr getRequestHeader(StringView key)
 
 Gets value of header with the given key. Returns empty string if header does not exist. 
-Note this method is effective only when called in :ref:`onRequestHeader <config_http_filters_wasm_context_api_onrequestheaders>` and
-:ref:`onLog <config_http_filters_wasm_context_api_onlog>`.
+This method is effective only when called in :ref:`onRequestHeader <config_http_filters_wasm_context_object_api_onrequestheaders>` and
+:ref:`onLog <config_http_filters_wasm_context_object_api_onlog>`.
 
 getRequestHeaderPairs
 ^^^^^^^^^^^^^^^^^^^^^
@@ -386,8 +389,8 @@ getRequestHeaderPairs
 
     WasmDataPtr getRequestHeaderPairs()
 
-Gets all header pairs. Note this method is effective only when called in :ref:`onRequestHeader <config_http_filters_wasm_context_api_onrequestheaders>` and
-:ref:`onLog <config_http_filters_wasm_context_api_onlog>`.
+Gets all header pairs. This method is effective only when called in :ref:`onRequestHeader <config_http_filters_wasm_context_object_api_onrequestheaders>` and
+:ref:`onLog <config_http_filters_wasm_context_object_api_onlog>`.
 
 .. _config_http_filters_wasm_response_header_api:
 
@@ -399,7 +402,7 @@ addResponseHeader
    void addResponseHeader(StringView key, StringView value)
 
 Adds a new response header with the key and value if header does not exist, or append the value if header exists.
-Note this method is effective only when called in :ref:`onResponseHeader <config_http_filters_wasm_context_api_onresponseheaders>`.
+This method is effective only when called in :ref:`onResponseHeader <config_http_filters_wasm_context_object_api_onresponseheaders>`.
 
 replaceResponseHeader
 ^^^^^^^^^^^^^^^^^^^^^
@@ -409,7 +412,7 @@ replaceResponseHeader
    void replaceResponseHeader(StringView key, StringView value)
 
 Replaces the value of an existing response header with the given key, or create a new response header with the key and value if not existing.
-Note this method is effective only when called in :ref:`onResponseHeader <config_http_filters_wasm_context_api_onresponseheaders>`.
+This method is effective only when called in :ref:`onResponseHeader <config_http_filters_wasm_context_object_api_onresponseheaders>`.
 
 removeResponseHeader
 ^^^^^^^^^^^^^^^^^^^^
@@ -419,7 +422,7 @@ removeResponseHeader
    void removeResponseHeader(StringView key)
 
 Removes response header with the given key. No-op if the response header does not exist.
-Note this method is effective only when called in :ref:`onResponseHeader <config_http_filters_wasm_context_api_onresponseheaders>`.
+This method is effective only when called in :ref:`onResponseHeader <config_http_filters_wasm_context_object_api_onresponseheaders>`.
  
 setResponseHeaderPairs
 ^^^^^^^^^^^^^^^^^^^^^^
@@ -429,7 +432,7 @@ setResponseHeaderPairs
    void setResponseHeaderPairs(const HeaderStringPairs &pairs)
  
 Sets response headers with the given header pairs. For each header key value pair, it acts the same way as replaceResponseHeader.
-Note this method is effective only when called in :ref:`onResponseHeader <config_http_filters_wasm_context_api_onresponseheaders>`.
+This method is effective only when called in :ref:`onResponseHeader <config_http_filters_wasm_context_object_api_onresponseheaders>`.
  
 getResponseHeader
 ^^^^^^^^^^^^^^^^^
@@ -439,8 +442,8 @@ getResponseHeader
    WasmDataPtr getResponseHeader(StringView key)
  
 Gets value of header with the given key. Returns empty string if header does not exist.
-Note this method is effective only when called in :ref:`onResponseHeader <config_http_filters_wasm_context_api_onresponseheaders>` and
-:ref:`onLog <config_http_filters_wasm_context_api_onlog>`.
+This method is effective only when called in :ref:`onResponseHeader <config_http_filters_wasm_context_object_api_onresponseheaders>` and
+:ref:`onLog <config_http_filters_wasm_context_object_api_onlog>`.
  
 getResponseHeaderPairs
 ^^^^^^^^^^^^^^^^^^^^^^
@@ -449,8 +452,8 @@ getResponseHeaderPairs
  
    WasmDataPtr getResponseHeaderPairs()
  
-Gets all header pairs. Note this method is effective only when called in :ref:`onResponseHeader <config_http_filters_wasm_context_api_onresponseheaders>` and
-:ref:`onLog <config_http_filters_wasm_context_api_onlog>`.
+Gets all header pairs. This method is effective only when called in :ref:`onResponseHeader <config_http_filters_wasm_context_object_api_onresponseheaders>` and
+:ref:`onLog <config_http_filters_wasm_context_object_api_onlog>`.
 
 .. _config_http_filters_wasm_response_trailer_api:
 
@@ -462,7 +465,7 @@ addRequestTrailer
     void addRequestTrailer(StringView key, StringView value)
 
 Adds a new request trailer with the key and value if trailer does not exist, or append the value if trailer exists.
-Note this method is effective only when called in :ref:`onRequestTrailers <config_http_filters_wasm_context_api_onrequesttrailers>`.
+This method is effective only when called in :ref:`onRequestTrailers <config_http_filters_wasm_context_object_api_onrequesttrailers>`.
 
 replaceRequestTrailer
 ^^^^^^^^^^^^^^^^^^^^^
@@ -472,7 +475,7 @@ replaceRequestTrailer
     void replaceRequestTrailer(StringView key, StringView value)
 
 Replaces the value of an existing request trailer with the given key, or create a new request trailer with the key and value if not existing.
-Note this method is effective only when called in :ref:`onRequestTrailers <config_http_filters_wasm_context_api_onrequesttrailers>`.
+This method is effective only when called in :ref:`onRequestTrailers <config_http_filters_wasm_context_object_api_onrequesttrailers>`.
 
 removeRequestTrailer
 ^^^^^^^^^^^^^^^^^^^^
@@ -482,7 +485,7 @@ removeRequestTrailer
     void removeRequestTrailer(StringView key)
 
 Removes request trailer with the given key. No-op if the request trailer does not exist.
-Note this method is effective only when called in :ref:`onRequestTrailers <config_http_filters_wasm_context_api_onrequesttrailers>`.
+This method is effective only when called in :ref:`onRequestTrailers <config_http_filters_wasm_context_object_api_onrequesttrailers>`.
 
 setRequestTrailerPairs
 ^^^^^^^^^^^^^^^^^^^^^^
@@ -492,7 +495,7 @@ setRequestTrailerPairs
     void setRequestTrailerPairs(const HeaderStringPairs &pairs)
 
 Sets request trailers with the given trailer pairs. For each trailer key value pair,it acts the same way as replaceRequestHeader.
-Note this method is effective only when called in :ref:`onRequestTrailers <config_http_filters_wasm_context_api_onrequesttrailers>`.
+This method is effective only when called in :ref:`onRequestTrailers <config_http_filters_wasm_context_object_api_onrequesttrailers>`.
 
 getRequestTrailer
 ^^^^^^^^^^^^^^^^^
@@ -502,7 +505,7 @@ getRequestTrailer
     WasmDataPtr getRequestTrailer(StringView key)
 
 Gets value of trailer with the given key. Returns empty string if trailer does not exist.
-Note this method is effective only when called in :ref:`onRequestTrailers <config_http_filters_wasm_context_api_onrequesttrailers>`.
+This method is effective only when called in :ref:`onRequestTrailers <config_http_filters_wasm_context_object_api_onrequesttrailers>`.
 
 getRequestTrailerPairs
 ^^^^^^^^^^^^^^^^^^^^^^
@@ -511,7 +514,7 @@ getRequestTrailerPairs
 
     WasmDataPtr getRequestTrailerPairs()
 
-Gets all trailer pairs. Note this method is effective only when called in :ref:`onRequestTrailers <config_http_filters_wasm_context_api_onrequesttrailers>`.
+Gets all trailer pairs. This method is effective only when called in :ref:`onRequestTrailers <config_http_filters_wasm_context_object_api_onrequesttrailers>`.
 
 addResponseTrailer
 ^^^^^^^^^^^^^^^^^^
@@ -521,7 +524,7 @@ addResponseTrailer
    void addResponseTrailer(StringView key, StringView value)
  
 Adds a new response trailer with the key and value if trailer does not exist, or append the value if trailer exists.
-Note this method is effective only when called in :ref:`onResponseTrailer <config_http_filters_wasm_context_api_onresponsetrailers>`.
+This method is effective only when called in :ref:`onResponseTrailer <config_http_filters_wasm_context_object_api_onresponsetrailers>`.
  
 replaceResponseTrailer
 ^^^^^^^^^^^^^^^^^^^^^^
@@ -531,7 +534,7 @@ replaceResponseTrailer
    void replaceResponseTrailer(StringView key, StringView value)
  
 Replaces the value of an existing response trailer with the given key, or create a new response trailer with the key and value if not existing.
-Note this method is effective only when called in :ref:`onResponseTrailer <config_http_filters_wasm_context_api_onresponsetrailers>`.
+This method is effective only when called in :ref:`onResponseTrailer <config_http_filters_wasm_context_object_api_onresponsetrailers>`.
  
 removeResponseTrailer
 ^^^^^^^^^^^^^^^^^^^^^
@@ -541,7 +544,7 @@ removeResponseTrailer
    void removeResponseTrailer(StringView key)
  
 Removes response trailer with the given key. No-op if the response trailer does not exist.
-Note this method is effective only when called in :ref:`onResponseTrailer <config_http_filters_wasm_context_api_onresponsetrailers>`.
+This method is effective only when called in :ref:`onResponseTrailer <config_http_filters_wasm_context_object_api_onresponsetrailers>`.
  
 setResponseTrailerPairs
 ^^^^^^^^^^^^^^^^^^^^^^^
@@ -551,7 +554,7 @@ setResponseTrailerPairs
    void setResponseTrailerPairs(const TrailerStringPairs &pairs)
  
 Sets response trailers with the given trailer pairs. For each trailer key value pair, it acts the same way as replaceResponseTrailer.
-Note this method is effective only when called in :ref:`onResponseTrailer <config_http_filters_wasm_context_api_onresponsetrailers>`.
+This method is effective only when called in :ref:`onResponseTrailer <config_http_filters_wasm_context_object_api_onresponsetrailers>`.
  
 getResponseTrailer
 ^^^^^^^^^^^^^^^^^^
@@ -561,8 +564,8 @@ getResponseTrailer
    WasmDataPtr getResponseTrailer(StringView key)
  
 Gets value of trailer with the given key. Returns empty string if trailer does not exist.
-Note this method is effective only when called in :ref:`onResponseTrailer <config_http_filters_wasm_context_api_onresponsetrailers>` and
-:ref:`onLog <config_http_filters_wasm_context_api_onlog>`.
+This method is effective only when called in :ref:`onResponseTrailer <config_http_filters_wasm_context_object_api_onresponsetrailers>` and
+:ref:`onLog <config_http_filters_wasm_context_object_api_onlog>`.
  
 getResponseTrailerPairs
 ^^^^^^^^^^^^^^^^^^^^^^^
@@ -571,8 +574,8 @@ getResponseTrailerPairs
 
    WasmDataPtr getResponseTrailerPairs()
  
-Gets all trailer pairs. Note this method is effective only when called in :ref:`onResponseTrailer <config_http_filters_wasm_context_api_onresponsetrailers>` and
-:ref:`onLog <config_http_filters_wasm_context_api_onlog>`.
+Gets all trailer pairs. This method is effective only when called in :ref:`onResponseTrailer <config_http_filters_wasm_context_object_api_onresponsetrailers>` and
+:ref:`onLog <config_http_filters_wasm_context_object_api_onlog>`.
 
 .. _config_http_filters_wasm_body_api:
 
@@ -587,7 +590,7 @@ getRequestBodyBufferBytes
    WasmDataPtr getRequestBodyBufferBytes(size_t start, size_t length)
 
 Returns buffered request body. This copies segment of request body. *start* is an integer and supplies the body buffer start index to copy. 
-*length* is an integer and supplies the buffer length to copy. This method is effective when calling from :ref:`onRequestBody <config_http_filters_wasm_context_api_onrequestbody>`.
+*length* is an integer and supplies the buffer length to copy. This method is effective when calling from :ref:`onRequestBody <config_http_filters_wasm_context_object_api_onrequestbody>`.
 
 getResponseBodyBufferBytes
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -597,7 +600,7 @@ getResponseBodyBufferBytes
    WasmDataPtr getResponseBodyBufferBytes(size_t start, size_t length)
 
 Returns buffered response body. This copies segment of response body. *start* is an integer and supplies the body buffer start index to copy.
-*length* is an integer and supplies the buffer length to copy. This method is effective when calling from :ref:`onResponseBody <config_http_filters_wasm_context_api_onresponsebody>`.
+*length* is an integer and supplies the buffer length to copy. This method is effective when calling from :ref:`onResponseBody <config_http_filters_wasm_context_object_api_onresponsebody>`.
 
 Metadata API
 ------------
@@ -644,6 +647,8 @@ StreamInfo API
 Timer API
 ---------
 
+Timer API is used to set a timer and get current timestamp.
+
 .. _config_http_filters_wasm_setTickPeriodMilliseconds:
 
 setTickPeriodMilliseconds
@@ -652,9 +657,10 @@ setTickPeriodMilliseconds
 
     void setTickPeriodMilliseconds(uint32_t millisecond)
 
-Set a timer. *millisecond* is tick interval in millisecond. :ref:`onTick <config_http_filters_wasm_context_api_ontick>` will be invoked when timer fires.
+Set a timer. *millisecond* is tick interval in millisecond. :ref:`onTick <config_http_filters_wasm_context_object_api_ontick>` will be invoked when timer fires.
 
-Note only one timer could be set for each WASM module, so it needs to be multiplexed by events with different tick intervals.
+.. note::
+    Only one timer could be set for each WASM module, so it needs to be multiplexed by events with different tick intervals.
 
 getCurrentTimeNanoseconds
 ^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -681,7 +687,7 @@ New
     
     static Counter<Tags...>* New(StringView name, MetricTagDescriptor<Tags>... fieldnames)
 
-Create a new counter with the given counter name and tag names. Example code to create a counter metric:
+Create a new counter with the given metric name and tag names. Example code to create a counter metric:
 
 .. code-block:: cpp
 
@@ -729,7 +735,7 @@ resolve
 Resolves counter object to a specific counter for a list of tag values.
 
 Returns a :ref:`SimpleCounter <config_http_filters_wasm_SimpleCounter>`
-resolved from the counter object with a list of tag values, so that tag values do not need to be specified
+resolved from the counter object, so that tag values do not need to be specified
 in every increment call. Example code:
 
 .. code-block:: cpp
@@ -741,7 +747,7 @@ in every increment call. Example code:
 SimpleCounter
 ^^^^^^^^^^^^^
 
-*SimpleCounter* is resolved from a counter object with predetermined tag values.
+*SimpleCounter* is resolved from a :ref:`Counter <config_http_filters_wasm_Counter>` object with predetermined tag values.
 
 increment
 ^^^^^^^^^
@@ -773,7 +779,7 @@ New
     
     static Gauge<Tags...>* New(StringView name, MetricTagDescriptor<Tags>... fieldnames)
 
-Create a new gauge with the given gauge name and tag names. Example code to create a gauge metric:
+Create a new gauge with the given metric name and tag names. Example code to create a gauge metric:
 
 .. code-block:: cpp
 
@@ -791,7 +797,7 @@ record
 
 Records current value of a gauge. *offset* is the value to set for current gauge.
 *tags* is a list of tag values to identify a specific gauge.
-Example code to increment the aforementioned gauge:
+Example code to record value of a gauge metric:
 
 .. code-block:: cpp
 
@@ -821,7 +827,7 @@ resolve
 Resolves gauge object to a specific gauge for a list of tag values.
 
 Returns a :ref:`SimpleGauge <config_http_filters_wasm_SimpleGauge>`
-resolved from the gauge object with a list of tag values, so that tag values do not need to be specified
+resolved from the gauge object, so that tag values do not need to be specified
 in every record call. Example code:
 
 .. code-block:: cpp
@@ -833,7 +839,7 @@ in every record call. Example code:
 SimpleGauge
 ^^^^^^^^^^^
 
-*SimpleGauge* is resolved from a gauge object with predetermined tag values.
+*SimpleGauge* is resolved from a :ref:`Gauge <config_http_filters_wasm_Gauge>` object with predetermined tag values.
 
 record
 ^^^^^^
@@ -853,6 +859,76 @@ get
 
 Returns current value of a gauge.
 
+.. _config_http_filters_wasm_Histogram:
+
+Histogram
+^^^^^^^^^
+
+New
+~~~
+
+.. code-block:: cpp
+    
+    static Histogram<Tags...>* New(StringView name, MetricTagDescriptor<Tags>... fieldnames)
+
+Create a new histogram object with the given metric name and tag names. 
+Example code to create a histogram metric:
+
+.. code-block:: cpp
+
+    auto h = Histogram<std::string, int, bool>::New(
+                 "test_histogram", "string_tag", "int_tag", "bool_tag");
+
+Returns a pointer to Histogram object.
+
+record
+^^^^^^
+
+.. code-block:: cpp
+
+    void record(int64_t offset, Tags... tags)
+
+Records a value in histogram stats. *offset* is the value to be recorded.
+*tags* is a list of tag values to identify a specific histogram.
+Example code to add a new value into histogram:
+
+.. code-block:: cpp
+
+    h->record(1, "test_tag", 7, true)
+
+resolve
+^^^^^^^
+
+.. code-block:: cpp
+
+    SimpleHistogram resolve(Tags... f)
+
+Resolves histogram object to a specific histogram for a list of tag values.
+
+Returns a :ref:`SimpleHistogram <config_http_filters_wasm_SimpleHistogram>`
+resolved from the histogram object, so that tag values do not need to be specified
+in every record call. Example code:
+
+.. code-block:: cpp
+
+    auto simple_histogram = c->resovle("test_tag", 7, true);
+
+.. _config_http_filters_wasm_SimpleHistogram:
+
+SimpleHistogram
+^^^^^^^^^^^^^^^
+
+*SimpleHistogram* is resolved from a :ref:`Histogram <config_http_filters_wasm_Histogram>` object with predetermined tag values.
+
+record
+^^^^^^
+
+.. code-block:: cpp
+
+    void record(int64_t offset)
+
+Records a value in histogram. *offset* is the value to be recorded.
+
 Data Structure
 --------------
 
@@ -861,12 +937,137 @@ Data Structure
 GrpcCallHandler
 ^^^^^^^^^^^^^^^
 
+Handler 
+
+onSuccess
+~~~~~~~~~
+
+onFailure
+~~~~~~~~~
+
+onCreateInitialMetadata
+~~~~~~~~~~~~~~~~~~~~~~~
+
+cancel
+~~~~~~
+
 .. _config_http_filters_wasm_GrpcStreamHandler:
 
 GrpcStreamHandler
 ^^^^^^^^^^^^^^^^^
 
-out of tree WASM module
+Base class for gRPC stream handler. Subclass could specify stream message types and override various callbacks.
+Example code to create a stream handler using *google::protobuf::Struct* as request and response message:
+
+.. code-block:: cpp
+
+    class StreamHandler : public GrpcStreamHandler<google::protobuf::Struct, google::protobuf::Struct> {
+      public:
+        void onReceive(google::protobuf::Struct&& message) {
+            /* override function with receive logic */
+        }
+        /*
+            more callbacks onCreateInitialMetadat, onReceiveTrailingMetadata, onReceive, onRemoteClose
+        */
+    };
+
+To initiate a handler, pass in pointer of a :ref:`context object <config_http_filters_wasm_context_object>`:
+
+.. code-block:: cpp
+
+    auto handler = std::make_unique<StreamHandler>(&context);
+
+*handler* is also used for WASM module to interact with the stream, such as send message,
+close stream or reset stream.
+
+send
+~~~~
+
+.. code-block:: cpp
+
+    void send(const Request& message, bool end_of_stream)
+
+Sends a request message to the stream. *end_of_stream* indicates if this is the last message to send. 
+With *end_of_stream* as true, callbacks can still occur.
+
+close
+~~~~~
+
+.. code-block:: cpp
+
+    void close()
+
+Close the stream locally and send an empty DATA frame to the remote. No further methods may be
+invoked on the stream object, but callbacks may still be received until the stream is closed
+remotely.
+
+reset
+~~~~~
+
+.. code-block:: cpp
+  
+    void reset()
+
+Close the stream locally and remotely (as needed). No further methods may be invoked on the
+handler object and no further callbacks will be invoked.
+
+onCreateInitialMetadata
+~~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: cpp
+  
+    void onCreateInitialMetadata()
+
+Called when populating the headers to send with initial metadata. TODO: how to add initial metadata?
+
+onReceiveInitialMetadata
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: cpp
+  
+    void onReceiveInitialMetadata()
+
+Called when initial metadata is received. This will be called with empty metadata on a
+trailers-only response, followed by onReceiveTrailingMetadata() with the trailing metadata.
+. TODO: how to get initial metadata?
+
+onReceiveTrailingMetadata
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: cpp
+  
+    void onReceiveTrailingMetadata()
+
+Called when trailing metadata is received. This will also be called on non-Ok grpc-status
+stream termination.
+
+onReceive
+~~~~~~~~~
+
+.. code-block:: cpp
+
+    void onReceive(Response&& message)
+
+Called when an async gRPC message is received.
+
+onRemoteClose
+~~~~~~~~~~~~~
+
+.. code-block:: cpp
+
+    void onRemoteClose(GrpcStatus status, std::unique_ptr<WasmData> error_message)
+
+Called when the remote closes or an error occurs on the gRPC stream. The stream is
+considered remotely closed after this invocation and no further callbacks will be
+invoked. In addition, no further stream operations are permitted. *status* is the
+grpc status, *error_message* is the gRPC status error message or empty string if not present.
+
+.. _config_http_filters_wasm_WasmData:
+
+WasmData
+^^^^^^^^
+
+Out of tree WASM module
 -----------------------
 
 TODO: add a example about out of tree WASM module example
