@@ -37,7 +37,7 @@ def api_dependencies():
     )
 
 GOOGLEAPIS_BUILD_CONTENT = """
-load("@com_google_protobuf//:protobuf.bzl", "py_proto_library")
+load("@com_google_protobuf//:protobuf.bzl", "cc_proto_library", "py_proto_library")
 load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 load("@com_github_grpc_grpc//bazel:cc_grpc_library.bzl", "cc_grpc_library")
 
@@ -58,7 +58,12 @@ proto_library(
 
 cc_proto_library(
     name = "api_httpbody_protos",
-    deps = [":api_httpbody_protos_proto"],
+    srcs = [
+        "google/api/httpbody.proto",
+    ],
+    default_runtime = "@com_google_protobuf//:protobuf",
+    protoc = "@com_google_protobuf//:protoc",
+    deps = ["@com_google_protobuf//:cc_wkt_protos"],
     visibility = ["//visibility:public"],
 )
 
@@ -90,6 +95,10 @@ filegroup(
         "google/api/annotations.proto",
         "google/api/http.proto",
     ],
+    default_runtime = "@com_google_protobuf//:protobuf",
+    protoc = "@com_google_protobuf//:protoc",
+    linkstatic = 1,
+    deps = ["@com_google_protobuf//:cc_wkt_protos"],
     visibility = ["//visibility:public"],
 )
 
@@ -153,7 +162,12 @@ proto_library(
 
 cc_proto_library(
     name = "rpc_status_protos",
-    deps = [":rpc_status_protos_lib"],
+    srcs = ["google/rpc/status.proto"],
+    default_runtime = "@com_google_protobuf//:protobuf",
+    protoc = "@com_google_protobuf//:protoc",
+    deps = [
+        "@com_google_protobuf//:cc_wkt_protos"
+    ],
     visibility = ["//visibility:public"],
 )
 
