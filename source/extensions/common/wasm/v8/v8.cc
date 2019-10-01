@@ -1,5 +1,5 @@
 #include "extensions/common/wasm/v8/v8.h"
-
+#include <iostream>
 #include <memory>
 #include <utility>
 #include <vector>
@@ -463,6 +463,11 @@ void V8::start(Context* context) {
       if (absl::StartsWith(kv.first, "__GLOBAL__")) {
         callModuleFunction(context, kv.first, kv.second.get(), nullptr, nullptr);
       }
+    }
+  }
+  for (const auto& kv : module_functions_) {
+    if (absl::StartsWith(kv.first, "cwa_main")) {
+      callModuleFunction(context, kv.first, kv.second.get(), nullptr, nullptr);
     }
   }
 
