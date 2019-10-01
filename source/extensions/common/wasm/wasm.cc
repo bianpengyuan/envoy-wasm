@@ -937,6 +937,19 @@ Word logHandler(void* raw_context, Word level, Word address, Word size) {
   return wasmResultToWord(WasmResult::Ok);
 }
 
+Word _golang_logHandler(void* raw_context, Word level, Word address, Word size, Word, Word) {
+  std::cout<<"hhhhhhhhhhhhhhhhhhhhhhhh"<<address<<"\n";
+  return logHandler(raw_context, level, address, size);
+}
+
+Word io_get_stdoutHandler(void*) {
+  throw WasmException("tinygo io_get_stdout");
+}
+
+Word resource_writeHandler(void*, Word, Word, Word) {
+  throw WasmException("tinygo resource_write");
+}
+
 double globalMathLogHandler(void*, double f) { return ::log(f); }
 
 WasmResult Context::setTickPeriod(std::chrono::milliseconds tick_period) {
@@ -1972,7 +1985,8 @@ void Wasm::registerCallbacks() {
       &ConvertFunctionWordToUint32<decltype(_fn##_abi##Handler),                                   \
                                    _fn##_abi##Handler>::convertFunctionWordToUint32)
 #define _REGISTER(_fn) _REGISTER_ABI(_fn, )
-
+  _REGISTER(io_get_stdout);
+  _REGISTER(resource_write);
   if (is_emscripten_) {
     if (emscripten_abi_major_version_ > 0 || emscripten_abi_minor_version_ > 1) {
       // abi 0.2 - abortOnCannotGrowMemory() changed signature to (param i32) (result i32).
@@ -2069,6 +2083,14 @@ void Wasm::registerCallbacks() {
 
   _REGISTER_PROXY(setEffectiveContext);
 #undef _REGISTER_PROXY
+
+#define _REGISTER_GOLANG_PROXY(_fn)                                                                  \
+  wasm_vm_->registerCallback(                                                                      \
+      "envoy", "envoywasmsdk._proxy_" #_fn, &_golang_##_fn##Handler,                                      \
+      &ConvertFunctionWordToUint32<decltype(_golang_##_fn##Handler),                               \
+                                   _golang_##_fn##Handler>::convertFunctionWordToUint32)
+  _REGISTER_GOLANG_PROXY(log);
+#undef _REGISTER_GOLANG_PROXY
 }
 
 void Wasm::establishEnvironment() {
@@ -2093,6 +2115,10 @@ void Wasm::getFunctions() {
   _GET(free);
   _GET(__errno_location);
 #undef _GET
+
+#define _GET_GOLANG(_fn) wasm_vm_->getFunction(#_fn, &_fn##_);
+  _GET_GOLANG(cwa_main);
+#undef _GET_GOLANG
 
 #define _GET_PROXY(_fn) wasm_vm_->getFunction("_proxy_" #_fn, &_fn##_);
   _GET_PROXY(validateConfiguration);
@@ -2179,6 +2205,9 @@ bool Wasm::initialize(const std::string& code, absl::string_view name, bool allo
   wasm_vm_->link(name, is_emscripten_);
   vm_context_ = std::make_shared<Context>(this);
   getFunctions();
+  if (cwa_main_ != nullptr) {
+    is_tinygo_ = true;
+  }
   wasm_vm_->start(vm_context_.get());
   if (is_emscripten_) {
     ASSERT(std::isnan(global_NaN_->get()));

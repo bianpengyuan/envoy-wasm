@@ -566,6 +566,9 @@ private:
   WasmCallVoid<1> free_;
   WasmCallWord<0> __errno_location_;
 
+  // Golang function
+  WasmCallVoid<0> cwa_main_;
+
   // Calls into the VM.
   WasmCallWord<3> validateConfiguration_;
   WasmCallVoid<5> onStart_;
@@ -604,6 +607,7 @@ private:
   bool allow_precompiled_ = false;
 
   bool is_emscripten_ = false;
+  bool is_tinygo_ = false;
   uint32_t emscripten_metadata_major_version_ = 0;
   uint32_t emscripten_metadata_minor_version_ = 0;
   uint32_t emscripten_abi_major_version_ = 0;
