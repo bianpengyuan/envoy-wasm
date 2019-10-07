@@ -54,6 +54,15 @@ inline Word wasmResultToWord(WasmResult r) { return Word(static_cast<uint64_t>(r
 
 inline uint32_t convertWordToUint32(Word w) { return static_cast<uint32_t>(w.u64_); }
 
+inline Word getStringPtr(Context* context, Word string_ptr_ptr) {
+  auto ptr_str_view = context->wasmVm()->getMemory(string_ptr_ptr.u64_, 4).value();
+  int64_t ptr = 0;
+  for (int i = 0; i < 4; i++) {
+    ptr = ptr | (uint8_t(ptr_str_view[i]) << 8*i);
+  }
+  return Word(ptr);
+}
+
 // Convert a function of the form Word(Word...) to one of the form uint32_t(uint32_t...).
 template <typename F, F* fn> struct ConvertFunctionWordToUint32 {
   static void convertFunctionWordToUint32() {}
@@ -937,14 +946,25 @@ Word logHandler(void* raw_context, Word level, Word address, Word size) {
   return wasmResultToWord(WasmResult::Ok);
 }
 
-Word _golang_logHandler(void* raw_context, Word level, Word address, Word size, Word, Word) {
-  auto context = WASM_CONTEXT(raw_context);
-  auto ptr_str_view = context->wasmVm()->getMemory(address.u64_, 4).value();
-  int64_t ptr = 0;
-  for (int i = 0; i < 4; i++) {
-    ptr = ptr | (uint8_t(ptr_str_view[i]) << 8*i);
-  }
-  return logHandler(raw_context, level, ptr, size);
+double globalMathLogHandler(void*, double f) { return ::log(f); }
+
+// Golang support with tinygo.
+Word _golang_logHandler(void* raw_context, Word level, Word msg_ptr_ptr, Word size, Word, Word) {
+  auto msg_ptr = getStringPtr(WASM_CONTEXT(raw_context), msg_ptr_ptr);
+  return logHandler(raw_context, level, msg_ptr, size);
+}
+
+Word _golang_getHeaderMapValueHandler(void* raw_context, Word type, Word key_ptr_ptr, Word key_size,
+                              Word val_ptr_ptr, Word val_size_ptr, Word, Word) {
+  auto key_ptr = getStringPtr(WASM_CONTEXT(raw_context), key_ptr_ptr);
+  return getHeaderMapValueHandler(raw_context, type, key_ptr, key_size, val_ptr_ptr, val_size_ptr);
+}
+
+Word _golang_addHeaderMapValueHandler(void* raw_context, Word type, Word key_ptr_ptr, Word key_size,
+                              Word val_ptr_ptr, Word val_size, Word, Word) {
+  auto key_ptr = getStringPtr(WASM_CONTEXT(raw_context), key_ptr_ptr);
+  auto val_ptr = getStringPtr(WASM_CONTEXT(raw_context), val_ptr_ptr);
+  return addHeaderMapValueHandler(raw_context, type, key_ptr, key_size, val_ptr, val_size);
 }
 
 Word io_get_stdoutHandler(void*) {
@@ -965,8 +985,6 @@ Word resource_writeHandler(void* raw_context, Word, Word address, Word len) {
   }
   return 1;
 }
-
-double globalMathLogHandler(void*, double f) { return ::log(f); }
 
 WasmResult Context::setTickPeriod(std::chrono::milliseconds tick_period) {
   wasm_->setTickPeriod(root_context_id_ ? root_context_id_ : id_, tick_period);
@@ -2106,6 +2124,8 @@ void Wasm::registerCallbacks() {
       &ConvertFunctionWordToUint32<decltype(_golang_##_fn##Handler),                               \
                                    _golang_##_fn##Handler>::convertFunctionWordToUint32)
   _REGISTER_GOLANG_PROXY(log);
+  _REGISTER_GOLANG_PROXY(getHeaderMapValue);
+  _REGISTER_GOLANG_PROXY(addHeaderMapValue);
 #undef _REGISTER_GOLANG_PROXY
 }
 
