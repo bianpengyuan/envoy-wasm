@@ -348,6 +348,17 @@ public:
   // Connection
   virtual bool isSsl();
 
+  // resource write
+  const std::string& getResourceWriteMessage() {
+    return resource_write_message_;
+  }
+  void appendResourceWriteMessage(absl::string_view msg) {
+    absl::StrAppend(&resource_write_message_, msg);
+  }
+  void clearResourceWriteMessage() {
+    resource_write_message_ = "";
+  }
+
 protected:
   friend class Wasm;
   friend struct AsyncClientHandler;
@@ -385,6 +396,7 @@ protected:
   std::string log_prefix_;
   bool in_vm_context_created_ = false;
   bool destroyed_ = false;
+  std::string resource_write_message_ = "";
 
   uint32_t next_http_call_token_ = 1;
   uint32_t next_grpc_token_ = 1; // Odd tokens are for Calls even for Streams.

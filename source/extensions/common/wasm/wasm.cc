@@ -938,16 +938,32 @@ Word logHandler(void* raw_context, Word level, Word address, Word size) {
 }
 
 Word _golang_logHandler(void* raw_context, Word level, Word address, Word size, Word, Word) {
-  std::cout<<"hhhhhhhhhhhhhhhhhhhhhhhh"<<address<<"\n";
-  return logHandler(raw_context, level, address, size);
+  auto context = WASM_CONTEXT(raw_context);
+  auto ptr_str_view = context->wasmVm()->getMemory(address.u64_, 4).value();
+  int64_t ptr = 0;
+  for (int i = 0; i < 4; i++) {
+    ptr = ptr | (uint8_t(ptr_str_view[i]) << 8*i);
+  }
+  return logHandler(raw_context, level, ptr, size);
 }
 
 Word io_get_stdoutHandler(void*) {
-  throw WasmException("tinygo io_get_stdout");
+  return 1;
 }
 
-Word resource_writeHandler(void*, Word, Word, Word) {
-  throw WasmException("tinygo resource_write");
+Word resource_writeHandler(void* raw_context, Word, Word address, Word len) { 
+  auto context = WASM_CONTEXT(raw_context);
+  auto m = context->wasmVm()->getMemory(address.u64_, len.u64_);
+  if (*m.value().data() == 10) {
+    const auto& rwm = context->getResourceWriteMessage();
+    context->scriptLog(spdlog::level::info, rwm);
+    context->clearResourceWriteMessage();
+  } else if (*m.value().data() == 13) {
+    // ignore.
+  } else {
+    context->appendResourceWriteMessage(m.value());
+  }
+  return 1;
 }
 
 double globalMathLogHandler(void*, double f) { return ::log(f); }
