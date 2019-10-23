@@ -115,6 +115,13 @@ absl::optional<CelValue> ConnectionWrapper::operator[](CelValue key) const {
                                 info_.downstreamSslConnection()->peerCertificatePresented());
   } else if (value == RequestedServerName) {
     return CelValue::CreateString(info_.requestedServerName());
+  } else if (value == CertificateSAN) {
+    if (info_.downstreamSslConnection() != nullptr && info_.downstreamSslConnection()->peerCertificatePresented()) {
+      const auto& downstream_san = info_.downstreamSslConnection()->uriSanPeerCertificate();
+      if (downstream_san.size() > 0) {
+        return CelValue::CreateString(downstream_san[0]);
+      }
+    }
   }
 
   if (info_.downstreamSslConnection() != nullptr) {
@@ -145,6 +152,13 @@ absl::optional<CelValue> UpstreamWrapper::operator[](CelValue key) const {
   } else if (value == MTLS) {
     return CelValue::CreateBool(info_.upstreamSslConnection() != nullptr &&
                                 info_.upstreamSslConnection()->peerCertificatePresented());
+  } else if (value == CertificateSAN) {
+    if (info_.upstreamSslConnection() != nullptr && info_.upstreamSslConnection() ->peerCertificatePresented()) {
+      const auto& upstream_san = info_.upstreamSslConnection()->uriSanPeerCertificate();
+      if (upstream_san.size() > 0) {
+        return CelValue::CreateString(upstream_san[0]);
+      }
+    }
   }
 
   return {};

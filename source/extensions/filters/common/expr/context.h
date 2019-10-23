@@ -43,6 +43,7 @@ constexpr absl::string_view Connection = "connection";
 constexpr absl::string_view MTLS = "mtls";
 constexpr absl::string_view RequestedServerName = "requested_server_name";
 constexpr absl::string_view TLSVersion = "tls_version";
+constexpr absl::string_view CertificateSAN = "certificate_san";
 
 // Source properties
 constexpr absl::string_view Source = "source";
