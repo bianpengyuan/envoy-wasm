@@ -1237,7 +1237,6 @@ inline void GrpcStreamHandlerBase::send(StringView message, bool end_of_stream) 
 }
 
 inline void RootContext::onGrpcCreateInitialMetadata(uint32_t) {
-  std::cout<<"called ongrpccreateinitialmetadata on root context\n";
   {
     if (cur_grpc_call_ != nullptr) {
       cur_grpc_call_->onCreateInitialMetadata();
