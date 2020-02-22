@@ -18,7 +18,10 @@ static RegisterContextFactory register_ExampleContext(CONTEXT_FACTORY(ExampleCon
 class MyGrpcCallHandler : public GrpcCallHandler<google::protobuf::Value> {
 public:
   MyGrpcCallHandler() : GrpcCallHandler<google::protobuf::Value>() {}
-  void onCreateInitialMetadata(uint32_t) override {}
+  void onCreateInitialMetadata(uint32_t) override {
+    addHeaderMapValue(
+        HeaderMapType::GrpcCreateInitialMetadata, "key", "val");
+  }
   void onSuccess(size_t body_size) override {
     auto response = getBufferBytes(BufferType::GrpcReceiveBuffer, 0, body_size);
     logDebug(response->proto<google::protobuf::Value>().string_value());

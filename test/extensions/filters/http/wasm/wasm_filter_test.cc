@@ -381,6 +381,11 @@ TEST_P(WasmHttpFilterTest, GrpcCallAfterDestroyed) {
         EXPECT_TRUE(value.ParseFromArray(message->linearize(message->length()), message->length()));
         EXPECT_EQ(value.string_value(), "request");
         callbacks = &cb;
+        Http::HeaderMapImpl initial_metadata;
+        callbacks->onCreateInitialMetadata(initial_metadata);
+        auto* metadata_entry = initial_metadata.get(Envoy::Http::LowerCaseString("key"));
+        EXPECT_TRUE(metadata_entry != nullptr);
+        EXPECT_EQ(metadata_entry->value().getStringView(), "val");
         parent_span = &span;
         EXPECT_EQ(options.timeout->count(), 1000);
         return &request;
